@@ -46,3 +46,22 @@ shm_open(1,(char **)&counter);
    exit();
    return 0;
 }
+
+int shm_close(int id){
+  int found = 1;
+  for(int i = 0; i < shm_table.shm_pages.size(); i ++){
+    if(shm_table.shm_pages[i].id == id){
+      found = 0;
+      shm_table.shm_pages[i].refcnt--;
+      if(shm_table.shm_pages[i].refcnt <= 0){
+        shm_table.shm_pages[i].frame = 0;
+        shm_table.shm_pages[i].refcnt = 0;
+        shm_table.shm_pages[i].id = 0;
+      }
+      else{
+        break;
+      }
+    }
+  }
+  return found;
+}
