@@ -32,6 +32,21 @@ int shm_open(int id, char **pointer) {
 
 //you write this
 
+int i = 0;
+int rc = 0;
+
+acquire(&(shm_table.lock));
+
+for (i = 0; i < 64; i++)
+{
+  if (shm_table.shm_pages[i].id != id) { continue; }
+  else { rc = id; }
+}
+
+if (rc != 0)
+{ 
+  return;
+}
 
 
 
