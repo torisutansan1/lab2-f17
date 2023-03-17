@@ -45,19 +45,22 @@ for (i = 0; i < 64; i++)
 
   if (rc != 0)
   { 
-    mappages(curproc->pgdir, (char*) sz, PGSIZE, V2P(shm_table.shm_pages[rc].frame), PTE_W | PTE_U);
-    *pointer = (char*) sz;
-    shm_table.shm_pages[rc].refcnt++;
-  }
-  else
-  {
-    shm_table.shm_pages[rc].id = id;
-    shm_table.shm_pages[rc].frame = kalloc();
-    memset(shm_table.shm_pages[rc].frame, 0, PGSIZE);
+    rc = 1;
     mappages(curproc->pgdir, (char*) sz, PGSIZE, V2P(shm_table.shm_pages[rc].frame), PTE_W | PTE_U);
     shm_table.shm_pages[rc].refcnt++;
+    break;
   }
 }
+
+if (rc == 0)
+{
+  shm_table.shm_pages[rc].id = id;
+  shm_table.shm_pages[rc].frame = kalloc();
+  memset(shm_table.shm_pages[rc].frame, 0, PGSIZE);
+  mappages(curproc->pgdir, (char*) sz, PGSIZE, V2P(shm_table.shm_pages[rc].frame), PTE_W | PTE_U);
+}
+curproc->sz = sz + PGSIZE;
+*pointer = (char*) sz;
 release(&(shm_table.lock));
 
 return 0; //added to remove compiler warning -- you should decide what to return
