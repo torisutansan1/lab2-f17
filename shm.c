@@ -54,11 +54,31 @@ return 0; //added to remove compiler warning -- you should decide what to return
 }
 
 
-int shm_close(int id) {
-//you write this too!
+// int shm_close(int id) {
+// //you write this too!
 
 
 
 
-return 0; //added to remove compiler warning -- you should decide what to return
+// return 0; //added to remove compiler warning -- you should decide what to return
+// }
+int shm_close(int id){
+  int found = 1;
+  int j;
+  // struct shm_table shmtable;
+  for(j = 0; j < 64; j++){
+    if(shm_table.shm_pages[j].id == id){
+      found = 0;
+      shm_table.shm_pages[j].refcnt--;
+      if(shm_table.shm_pages[j].refcnt <= 0){
+        shm_table.shm_pages[j].frame = 0;
+        shm_table.shm_pages[j].refcnt = 0;
+        shm_table.shm_pages[j].id = 0;
+      }
+      else{
+        break;
+      }
+    }
+  }
+  return found;
 }
