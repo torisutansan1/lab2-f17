@@ -38,21 +38,27 @@ struct proc* curproc = myproc();
 uint sz = PGROUNDUP(curproc->sz);
 
 acquire(&(shm_table.lock));
-
 for (i = 0; i < 64; i++)
 {
   if (shm_table.shm_pages[i].id != id) { continue; }
   else { rc = id; }
+
+  if (rc != 0)
+  { 
+    mappages(curproc->pgdir, (char*) sz, PGSIZE, V2P(shm_table.shm_pages[rc].frame), PTE_W | PTE_U);
+    *pointer = (char*) sz;
+    shm_table.shm_pages[rc].refcnt++;
+  }
+  else
+  {
+    shm_table.shm_pages[rc].id = id;
+    shm_table.shm_pages[rc].frame = kalloc();
+    memset(shm_table.shm_pages[rc].frame, 0, PGSIZE);
+    mappages(curproc->pgdir, (char*) sz, PGSIZE, V2P(shm_table.shm_pages[rc].frame), PTE_W | PTE_U);
+    shm_table.shm_pages[rc].refcnt++;
+  }
 }
-
-if (rc != 0)
-{ 
-  mappages(curproc->pgdir, (char*) sz, PGSIZE, V2P(shm_table.shm_pages[rc].frame), PTE_W | PTE_U);
-  *pointer = (char*) sz;
-  shm_table.shm_pages[i].refcnt++;
-}
-
-
+release(&(shm_table.lock));
 
 return 0; //added to remove compiler warning -- you should decide what to return
 }
@@ -66,6 +72,7 @@ return 0; //added to remove compiler warning -- you should decide what to return
 
 // return 0; //added to remove compiler warning -- you should decide what to return
 // }
+
 int shm_close(int id){
   int found = 1;
   int j;
