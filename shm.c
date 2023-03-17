@@ -34,6 +34,8 @@ int shm_open(int id, char **pointer) {
 
 int i = 0;
 int rc = 0;
+struct proc* curproc = myproc();
+uint sz = PGROUNDUP(curproc->sz);
 
 acquire(&(shm_table.lock));
 
@@ -45,7 +47,9 @@ for (i = 0; i < 64; i++)
 
 if (rc != 0)
 { 
-  return;
+  mappages(curproc->pgdir, (char*) sz, PGSIZE, V2P(shm_table.shm_pages[rc].frame), PTE_W | PTE_U);
+  *pointer = (char*) sz;
+  shm_table.shm_pages[i].refcnt++;
 }
 
 
