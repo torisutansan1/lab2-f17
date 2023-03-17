@@ -36,28 +36,36 @@ int i = 0;
 int rc = 0;
 struct proc* curproc = myproc();
 uint sz = PGROUNDUP(curproc->sz);
+int t = 0;
 
 acquire(&(shm_table.lock));
 for (i = 0; i < 64; i++)
 {
   if (shm_table.shm_pages[i].id != id) { continue; }
-  else { rc = id; }
-
-  if (rc != 0)
-  { 
-    rc = 1;
-    mappages(curproc->pgdir, (char*) sz, PGSIZE, V2P(shm_table.shm_pages[rc].frame), PTE_W | PTE_U);
-    shm_table.shm_pages[rc].refcnt++;
+  else { 
+    rc = id;
+    mappages(curproc->pgdir, (char*) sz, PGSIZE, V2P(shm_table.shm_pages[i].frame), PTE_W | PTE_U);
+    shm_table.shm_pages[i].refcnt++;
     break;
   }
+  if(shm_table.shm_pages[i].id == 0 && shm_table.shm_pages[i].frame == 0 && shm_table.shm_pages[i].refcnt == 0){
+    t = i;
+  }
+  // if (rc != 0)
+  // { 
+  //   // rc = 1;
+  //   mappages(curproc->pgdir, (char*) sz, PGSIZE, V2P(shm_table.shm_pages[rc].frame), PTE_W | PTE_U);
+  //   shm_table.shm_pages[rc].refcnt++;
+  //   break;
+  // }
 }
 
 if (rc == 0)
 {
-  shm_table.shm_pages[rc].id = id;
-  shm_table.shm_pages[rc].frame = kalloc();
-  memset(shm_table.shm_pages[rc].frame, 0, PGSIZE);
-  mappages(curproc->pgdir, (char*) sz, PGSIZE, V2P(shm_table.shm_pages[rc].frame), PTE_W | PTE_U);
+  shm_table.shm_pages[t].id = id;
+  shm_table.shm_pages[t].frame = kalloc();
+  memset(shm_table.shm_pages[t].frame, 0, PGSIZE);
+  mappages(curproc->pgdir, (char*) sz, PGSIZE, V2P(shm_table.shm_pages[t].frame), PTE_W | PTE_U);
 }
 curproc->sz = sz + PGSIZE;
 *pointer = (char*) sz;
