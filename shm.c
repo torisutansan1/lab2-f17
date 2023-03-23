@@ -66,7 +66,7 @@ curproc->sz = sz + PGSIZE;
 *pointer = (char*) sz;
 release(&(shm_table.lock));
 
-return 0; //added to remove compiler warning -- you should decide what to return
+return **pointer; //added to remove compiler warning -- you should decide what to return
 }
 
 
